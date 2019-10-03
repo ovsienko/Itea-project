@@ -1,7 +1,7 @@
 from telebot import TeleBot
 from config import SHOP_API
 from bot.menus_shop import *
-from models.models import User, Text, Category, Item
+from models.models import User, Text, Category, Item, Cart
 
 bot = TeleBot(SHOP_API)
 
@@ -62,11 +62,58 @@ def get_cats(call):
 def items(call):
     user = User.get_or_create_user(message=call)
     cat = Category.objects.get(id=call.data.split('_')[1])
-    items = Item.objects.filter(category=cat, lang=user.lang)
-    for item in items:
+    items = Item.objects.filter(category=cat)
+    print(items)
+    if not items:
+        text = Text.objects.get(title='no_item', lang=user.lang).text
         bot.send_message(chat_id=call.message.chat.id,
-                         text=item.title)
-        bot.send_photo(call.message.chat.id, item.photo_file)
+                         text=text)
+    else:
+        for item in items:
+            if user.lang == '🇺🇦':
+                text = ''''
+                    {0}
+                    {1}
+                    Ціна: {2}
+                    Кількість: {3}
+                '''.format(item.title, item.desc, item.price, item.quantity)
+            else:
+                text = ''''
+                    {0}
+                    {1}
+                    Price: {2}
+                    Quantity: {3}
+                '''.format(item.title_en,
+                           item.desc_en,
+                           item.price,
+                           item.quantity)
+            mark = item_to_cart(item, user.lang)
+            bot.send_photo(call.message.chat.id, item.photo)
+            bot.send_message(chat_id=call.message.chat.id,
+                             text=text,
+                             reply_markup=mark,
+                             parse_mode='HTML')
+
+
+@bot.callback_query_handler(func=lambda
+                            q: q.data.split('_')[0] == 'itemcart')
+def add_to_cart(call):
+    print('ttt')
+    user = User.get_or_create_user(message=call)
+    item = Item.objects.filter(id=call.data.split('_')[1]).first()
+    Cart.create_or_append_to_cart(item, user)
+
+
+@bot.callback_query_handler(func=lambda q: q.data == 'cart')
+def cart(call):
+    user = User.get_or_create_user(message=call)
+    user_cart = Cart.objects.get(user=user)
+    for item in user_cart.items:
+        bot.send_message(chat_id=call.message.chat.id,
+                         text=(item.title, item.price))
+    text = 'Сума: ' + str(user_cart.get_sum)
+    bot.send_message(chat_id=call.message.chat.id,
+                     text=text)
 
 
 if __name__ == '__main__':

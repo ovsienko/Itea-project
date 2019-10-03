@@ -43,9 +43,17 @@ class Item(Document):
     category = ReferenceField(Category)
     desc = StringField()
     desc_en = StringField()
-    price = IntField()
+    _price = IntField()
     quantity = IntField()
     photo = FileField()
+
+    @property
+    def price(self):
+        return self._price / 100
+
+    @price.setter
+    def price(self, value):
+        self._price = value
 
 
 class AddItem(Document):
@@ -99,14 +107,38 @@ class Menu(Document):
     name = StringField()
 
 
+class Cart(Document):
+    user = ReferenceField(User, required=True)
+    items = ListField(ReferenceField(Item))
+    is_archived = BooleanField(default=False)
+
+    @property
+    def get_sum(self):
+        cart_sum = 0
+        for i in self.items:
+            cart_sum += i.price
+        return cart_sum
+
+    @classmethod
+    def create_or_append_to_cart(cls, item, user):
+        user_cart = cls.objects.filter(user=user).first()
+        if user_cart and not user_cart.is_archived:
+            user_cart.items.append(item)
+            user_cart.save()
+        else:
+            cls(user=user, items=[item]).save()
+
+    def clean_cart(self):
+        self.items = []
+        self.save()
 #
-# tx = Text(title='cat_list',
-#           text='Список категорій',
+# tx = Text(title='addtocart',
+#           text='Додати в кошик',
 #           lang='🇺🇦')
 # tx.save()
 # # 🇺🇸
 # 🇺🇦
-# mn = Menu(name='main', title='Категорії', callb='cats', lang='🇺🇦')
+# mn = Menu(name='main', title='Кошик', callb='cart', lang='🇺🇦')
 # mn.save()
-#
+# #
 #

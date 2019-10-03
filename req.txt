@@ -1,0 +1,16 @@
+asn1crypto==0.24.0
+attrs==19.1.0
+cffi==1.12.3
+cryptography==2.7
+mongoengine==0.18.2
+pyasn1==0.4.7
+pyasn1-modules==0.2.6
+pycparser==2.19
+pymongo==3.9.0
+pyOpenSSL==19.0.0
+pyTelegramBotAPI==3.6.6
+requests==2.7.0
+service-identity==18.1.0
+six==1.12.0
+telebot==0.0.3
+TelegramBotAPI==0.3.2
