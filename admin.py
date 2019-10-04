@@ -224,7 +224,7 @@ def list_item(call):
                             query: query.data.split('_')[0] == 'item')
 def more_item(call):
     item = Item.objects.get(id=call.data.split('_')[1])
-    bot.send_photo(call.message.chat.id, item.photo_file)
+    bot.send_photo(call.message.chat.id, item.photo)
     msg = '''
     Назва: {0}
     Опис: {1}
