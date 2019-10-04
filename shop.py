@@ -108,12 +108,16 @@ def add_to_cart(call):
 def cart(call):
     user = User.get_or_create_user(message=call)
     user_cart = Cart.objects.get(user=user)
-    for item in user_cart.items:
+    if user_cart:
+        for item in user_cart.items:
+            bot.send_message(chat_id=call.message.chat.id,
+                             text=(item.title, item.price))
+        text = 'Сума: ' + str(user_cart.get_sum)
         bot.send_message(chat_id=call.message.chat.id,
-                         text=(item.title, item.price))
-    text = 'Сума: ' + str(user_cart.get_sum)
-    bot.send_message(chat_id=call.message.chat.id,
-                     text=text)
+                         text=text)
+    else:
+        bot.send_message(chat_id=call.message.chat.id,
+                         text='Cart is empty')
 
 
 if __name__ == '__main__':
